@@ -1,19 +1,16 @@
-using System;
-using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using UrlShortner.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-// Configure the web host
-builder.WebHost.UseKestrel()
-    .UseUrls("http://localhost:5000")
-    .UseContentRoot(AppContext.BaseDirectory)
-    .UseIISIntegration()
-    .UseStartup<Startup>();     
+
 // Add services to the container.
-builder.Services.AddControllers();
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+builder.Services.AddSingleton<UrlShortnerService>();
 
 var app = builder.Build();
 
@@ -21,16 +18,10 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"));
+    app.UseSwaggerUI();
 }
-app.UseRouting();
 
-app.UseEndpoints(endpoints =>
-{
-    endpoints.MapControllers();
-});
+app.UseHttpsRedirection();
+app.MapControllers();
+app.Run();
 
-app.Run(async context =>
-{
-    await context.Response.WriteAsync("Hello World!");
-});
