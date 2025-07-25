@@ -8,7 +8,7 @@ using UrlShortner.Services;
 namespace UrlShortner.Controllers
 {
     [ApiController]
-    class UrlController : ControllerBase
+    public class UrlController : ControllerBase
     {
         public readonly UrlShortnerService _service;
 
@@ -17,9 +17,9 @@ namespace UrlShortner.Controllers
             _service = urlShortnerService;
         }
 
-        [HttpPost("shorten")]
+        [HttpPost]
         [Route("/shorten")]
-        public IActionResult ShortenUrl(string longUrl)
+        public IActionResult ShortenUrl([FromBody] string longUrl)
         {
             if (string.IsNullOrEmpty(longUrl))
             {
@@ -30,6 +30,29 @@ namespace UrlShortner.Controllers
             {
                 string shortUrl = _service.ShortenUrl(longUrl);
                 return Ok(new { ShortUrl = shortUrl });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpGet("GetPage")]
+        public IActionResult GetLongUrl(string shortUrl)
+        {
+            if (string.IsNullOrEmpty(shortUrl))
+            {
+                return BadRequest("Short URL cannot be null or empty");
+            }
+
+            try
+            {
+                string longUrl = _service.GetLongUrl(shortUrl);
+                return Redirect(longUrl);
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Short URL not found");
             }
             catch (Exception ex)
             {
